@@ -7,6 +7,18 @@ name = "sustainable_fashion_tracker_workspace"
 version = "0.1.0"
 description = "all dependencies to be added here"
 requires-python = ">=3.12,<4.0"
+authors = [
+    {name = "Shivani Singh"}
+]
+
+[tool.poetry]
+name = "sustainable_fashion_tracker_workspace"
+version = "0.1.0"
+description = "all dependencies to be added here"
+packages = [{include = "."}]
+package-mode = false
+
+[project]
 dependencies = [
     "geopy>=2.4.1",
     "langchain-community>=0.3.19",
