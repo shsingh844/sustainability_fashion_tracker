@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "sustainable fashion tracker workspace"
 version = "0.1.0"
-description = "Add your description here"
+description = "all dependencies to be added here"
 requires-python = ">=3.11"
 dependencies = [
     "geopy>=2.4.1",

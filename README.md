@@ -71,17 +71,33 @@ To use the personalized recommendations feature:
 
 ## Project Structure
 ```
-├── app.py                 # Main Streamlit application
-├── models/               
-│   └── database.py       # Database models and initialization
-├── utils/
-│   ├── achievements.py   # Achievement system logic
-│   ├── auth.py          # Authentication handling
+├── .streamlit/           # Streamlit configuration directory
+│   └── config.toml       # Streamlit server configuration
+├── data/                 # Data directory
+│   └── sustainable_fashion_data.csv  # Sample dataset
+├── models/               # Database models
+│   └── database.py      # Database configuration and models
+├── utils/               # Utility modules
+│   ├── achievements.py  # Achievement system logic
+│   ├── auth.py         # Authentication handling
 │   ├── data_processor.py # Data processing utilities
 │   └── recommendations.py # AI recommendation system
-└── .streamlit/
-    └── config.toml       # Streamlit configuration
+├── .env                 # Environment variables (create from .env.example)
+├── .env.example         # Environment variables template
+├── .gitignore          # Git ignore configuration
+├── README.md           # Project documentation
+├── app.py              # Main Streamlit application
+└── pyproject.toml      # Python project dependencies and configuration
 ```
+
+### Essential Files Description
+- `.env`: Contains environment variables (database URL, API keys)
+- `.env.example`: Template for environment variables
+- `app.py`: Main application entry point
+- `pyproject.toml`: Project dependencies
+- `data/sustainable_fashion_data.csv`: Initial dataset for the application
+- `.streamlit/config.toml`: Streamlit server configuration
+
 
 ## Features Overview
 
