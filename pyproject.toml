@@ -1,5 +1,5 @@
 [project]
-name = "sustainable fashion tracker workspace"
+name = "sustainable_fashion_tracker_workspace"
 version = "0.1.0"
 description = "all dependencies to be added here"
 requires-python = ">=3.11"
