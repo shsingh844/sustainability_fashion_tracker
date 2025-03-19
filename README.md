@@ -41,14 +41,13 @@ cd sustainable-fashion-analytics
 
 2. Install required packages:
 ```bash
-pip install streamlit plotly pandas numpy sqlalchemy psycopg2-binary langchain langchain-openai openai
+pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
-Create a `.env` file in the root directory using the provided `.env.example` template:
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/database_name
-OPENAI_API_KEY=your_openai_api_key  # Optional, can be provided through UI
+3. Set up your environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your database and OpenAI credentials
 ```
 
 4. Initialize the database:
@@ -61,7 +60,7 @@ python -c "from models.database import init_database; init_database()"
 streamlit run app.py --server.port 5000
 ```
 
-The application will be available at `http://localhost:5000`
+The application will be available at `http://0.0.0.0:5000`
 
 ### OpenAI API Key Setup
 To use the personalized recommendations feature:
