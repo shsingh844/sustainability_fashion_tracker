@@ -2,7 +2,7 @@
 name = "sustainable_fashion_tracker_workspace"
 version = "0.1.0"
 description = "all dependencies to be added here"
-requires-python = ">=3.11"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "geopy>=2.4.1",
     "langchain-community>=0.3.19",
