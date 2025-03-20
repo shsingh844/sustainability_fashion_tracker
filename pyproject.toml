@@ -8,19 +8,24 @@ name = "sustainable-fashion-analytics"
 version = "0.1.0"
 description = "Sustainable Fashion Analytics Platform"
 authors = ["Shivani Singh"]
-packages = [{include = "."}]
-package-mode = false
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+#packages = [{include = "."}]
+#package-mode = false
 
 [project]
 name = "sustainable-fashion-analytics"
 version = "0.1.0"
 description = "Sustainable Fashion Analytics Platform"
-requires-python = ">=3.12,<4.0"
+requires-python = ">=3.9,<4.0"
 dependencies = [
     "geopy>=2.4.1",
     "langchain-community>=0.3.19",
     "langchain>=0.3.20",
-    "numpy>=2.2.3",
+    "numpy>=1.22.4,<1.27.0",
     "openai>=1.66.3",
     "pandas>=2.2.3",
     "plotly>=6.0.0",

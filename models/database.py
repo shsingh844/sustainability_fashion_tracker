@@ -5,9 +5,14 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import IntegrityError
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
-# Get database URL from environment
+load_dotenv()
+
+# Get database URL from environment with a default value
 DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")
 
 # Create database engine with proper connection pooling and SSL handling
 engine = create_engine(
