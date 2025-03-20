@@ -20,7 +20,7 @@ packages = ["."]
 name = "sustainable-fashion-analytics"
 version = "0.1.0"
 description = "Sustainable Fashion Analytics Platform"
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.9,<3.9.7 || >3.9.7,<4.0"
 dependencies = [
     "geopy>=2.4.1",
     "langchain-community>=0.3.19",
