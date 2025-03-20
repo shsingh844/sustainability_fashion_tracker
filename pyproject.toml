@@ -1,38 +1,32 @@
-
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "sustainable-fashion-analytics"
+name = "sustainability_fashion_tracker"
 version = "0.1.0"
 description = "Sustainable Fashion Analytics Platform"
 authors = ["Shivani Singh"]
-
-
-[tool.hatch.build.targets.wheel]
-packages = ["."]
-
-#packages = [{include = "."}]
-#package-mode = false
-
-[project]
-name = "sustainable-fashion-analytics"
-version = "0.1.0"
-description = "Sustainable Fashion Analytics Platform"
-requires-python = ">=3.9,<3.9.7 || >3.9.7,<4.0"
-dependencies = [
-    "geopy>=2.4.1",
-    "langchain-community>=0.3.19",
-    "langchain>=0.3.20",
-    "numpy>=1.22.4,<1.27.0",
-    "openai>=1.66.3",
-    "pandas>=2.2.3",
-    "plotly>=6.0.0",
-    "psycopg2-binary>=2.9.10",
-    "sqlalchemy>=2.0.39",
-    "streamlit>=1.43.2",
-    "trafilatura>=2.0.0",
-    "twilio>=9.5.0",
-    "langchain-openai>=0.3.9",
+packages = [
+    { include = "sustainability_fashion_tracker", from = "." }
 ]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+geopy = "^2.4.1"
+langchain-community = "^0.3.19"
+langchain = "^0.3.20"
+numpy = "^1.22.4"
+openai = "^1.66.3"
+pandas = "^2.2.3"
+plotly = "^6.0.0"
+psycopg2-binary = "^2.9.10"
+sqlalchemy = "^2.0.39"
+streamlit = "^1.43.2"
+trafilatura = "^2.0.0"
+twilio = "^9.5.0"
+langchain-openai = "^0.3.9"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
