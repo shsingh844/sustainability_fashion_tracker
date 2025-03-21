@@ -3,9 +3,6 @@ name = "sustainability_fashion_tracker"
 version = "0.1.0"
 description = "Sustainable Fashion Analytics Platform"
 authors = ["Shivani Singh"]
-packages = [
-    { include = "sustainability_fashion_tracker", from = "." }
-]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.9.7 || >3.9.7,<4.0"
