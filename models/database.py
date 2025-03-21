@@ -11,25 +11,32 @@ from dotenv import load_dotenv
 # Load environment variables from .env file (for local development)
 load_dotenv()
 
-# Fetch environment variables
-def get_env_variable(key):
-    """
-    Fetch environment variable from Streamlit secrets or .env file.
-    """
-    try:
-        # Try Streamlit secrets first (for cloud deployment)
-        if key in st.secrets:
-            return st.secrets[key]
-    except FileNotFoundError:
-        # Fall back to .env file (for local development)
-        pass
-    return os.getenv(key)
+# Read secrets from environment variables
+DATABASE_URL = os.getenv("DATABASE_URL")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Example usage
-DATABASE_URL = get_env_variable("DATABASE_URL")
-if not DATABASE_URL:
-    st.error("DATABASE_URL not found. Please check your configuration.")
-    st.stop()
+# Use the secrets in your app
+st.write(f"Database URL: {DATABASE_URL}")
+
+# # Fetch environment variables
+# def get_env_variable(key):
+#     """
+#     Fetch environment variable from Streamlit secrets or .env file.
+#     """
+#     try:
+#         # Try Streamlit secrets first (for cloud deployment)
+#         if key in st.secrets:
+#             return st.secrets[key]
+#     except FileNotFoundError:
+#         # Fall back to .env file (for local development)
+#         pass
+#     return os.getenv(key)
+
+# # Example usage
+# DATABASE_URL = get_env_variable("DATABASE_URL")
+# if not DATABASE_URL:
+#     st.error("DATABASE_URL not found. Please check your configuration.")
+#     st.stop()
 
 # Create database engine with proper connection pooling and SSL handling
 engine = create_engine(
