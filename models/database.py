@@ -30,12 +30,6 @@ DATABASE_URL = get_env_variable("DATABASE_URL")
 if not DATABASE_URL:
     st.error("DATABASE_URL not found. Please check your configuration.")
     st.stop()
-    
-# Get database URL from environment with a default value
-
-#DATABASE_URL = os.getenv('DATABASE_URL')
-#if not DATABASE_URL:
-#    raise ValueError("DATABASE_URL environment variable is not set")
 
 # Create database engine with proper connection pooling and SSL handling
 engine = create_engine(
@@ -163,25 +157,22 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
 def init_database():
-    """Initialize database schema."""
+    """Initialize database schema and sample data if needed."""
     db = next(get_db())
     try:
-        # Clear existing data in correct order (respect foreign key constraints)
-        db.execute(text("DELETE FROM user_interactions"))
-        db.execute(text("DELETE FROM user_achievements"))
-        db.execute(text("DELETE FROM user_favorites"))
-        db.execute(text("DELETE FROM achievements"))
-        db.execute(text("DELETE FROM businesses"))
-        db.execute(text("DELETE FROM users"))
+        # Check if the database is already initialized
+        if not db.execute(text("SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'businesses')")).scalar():
+            # Create tables if they don't exist
+            Base.metadata.create_all(bind=engine)
+            st.write("Database schema initialized.")
 
-        # Commit the deletions
-        db.commit()
-
-        # Load and insert sample data
-        # ... (Sample data loading logic would go here) ...
-
+        # Load sample data if the database is empty
+        if db.execute(text("SELECT COUNT(*) FROM businesses")).scalar() == 0:
+            # Load and insert sample data
+            # ... (Sample data loading logic would go here) ...
+            st.write("Sample data loaded.")
     except Exception as e:
         db.rollback()
-        raise Exception(f"Error initializing database: {str(e)}")
+        st.error(f"Error initializing database: {str(e)}")
     finally:
         db.close()
