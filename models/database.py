@@ -5,14 +5,30 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import IntegrityError
 import os
 from datetime import datetime
+import streamlit as st
 from dotenv import load_dotenv
 
+# Load environment variables from .env file (for local development)
 load_dotenv()
 
-# Get database URL from environment with a default value
-DATABASE_URL = os.getenv('DATABASE_URL')
+# Fetch environment variables
+def get_env_variable(key):
+    # Try Streamlit secrets first (for cloud deployment)
+    if key in st.secrets:
+        return st.secrets[key]
+    # Fall back to .env file (for local development)
+    return os.getenv(key)
+
+# Example: Fetch database URL
+DATABASE_URL = get_env_variable("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set")
+
+# Get database URL from environment with a default value
+
+#DATABASE_URL = os.getenv('DATABASE_URL')
+#if not DATABASE_URL:
+#    raise ValueError("DATABASE_URL environment variable is not set")
 
 # Create database engine with proper connection pooling and SSL handling
 engine = create_engine(
