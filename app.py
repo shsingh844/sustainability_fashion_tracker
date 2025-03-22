@@ -779,8 +779,8 @@ with tab5:
                     st.caption(f"{metric_options[selected_metric]}: {row[selected_metric]:.1f}%")
 
     with analytics_tab2:
-    # Regional Analysis content
-    # Cache computation-heavy operations
+        # Regional Analysis content
+        # Cache computation-heavy operations
         @st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
         def get_state_avg_sustainability():
             return df.groupby('state')['sustainability_score'].mean().reset_index()
@@ -793,66 +793,66 @@ with tab5:
         def get_correlation_matrix(metrics):
             return df[metrics].corr()
     
-    # Define the metrics list once to avoid recreation
-    correlation_metrics = [
-        'sustainability_score', 'eco_materials_score',
-        'carbon_footprint', 'water_usage', 'worker_welfare'
-    ]
-    
-    region_col1, region_col2 = st.columns([1, 2])
-    
-    with region_col1:
-        view_type = st.radio(
-            "Select View",
-            ["State Overview", "Category Distribution", "Performance Heatmap"],
-            key="region_view_type"  # Add unique key to improve session state handling
-        )
-    
-    with region_col2:
-        if view_type == "State Overview":
-            # Get cached data instead of recomputing
-            state_avg = get_state_avg_sustainability()
-            
-            # Create figure only once when needed
-            fig = px.choropleth(
-                state_avg,
-                locations='state',
-                locationmode="USA-states",
-                color='sustainability_score',
-                scope="usa",
-                color_continuous_scale="Viridis",
-                title="Average Sustainability Score by State"
+        # Define the metrics list once to avoid recreation
+        correlation_metrics = [
+            'sustainability_score', 'eco_materials_score',
+            'carbon_footprint', 'water_usage', 'worker_welfare'
+        ]
+        
+        region_col1, region_col2 = st.columns([1, 2])
+        
+        with region_col1:
+            view_type = st.radio(
+                "Select View",
+                ["State Overview", "Category Distribution", "Performance Heatmap"],
+                key="region_view_type"  # Add unique key to improve session state handling
             )
-            # Optimize rendering
-            fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
-            st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
-            
-        elif view_type == "Category Distribution":
-            # Get cached data
-            category_dist = get_category_distribution()
-            
-            fig = px.bar(
-                category_dist,
-                title="Business Categories by State",
-                barmode='stack'
-            )
-            # Optimize layout and rendering
-            fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
-            st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
-            
-        else:  # Performance Heatmap
-            # Get cached correlation matrix
-            corr_matrix = get_correlation_matrix(correlation_metrics)
-            
-            fig = px.imshow(
-                corr_matrix,
-                title="Sustainability Metrics Correlation",
-                labels=dict(color="Correlation"),
-                color_continuous_scale="RdBu"
-            )
-            # Optimize layout
-            fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
-            st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
+        
+        with region_col2:
+            if view_type == "State Overview":
+                # Get cached data instead of recomputing
+                state_avg = get_state_avg_sustainability()
+                
+                # Create figure only once when needed
+                fig = px.choropleth(
+                    state_avg,
+                    locations='state',
+                    locationmode="USA-states",
+                    color='sustainability_score',
+                    scope="usa",
+                    color_continuous_scale="Viridis",
+                    title="Average Sustainability Score by State"
+                )
+                # Optimize rendering
+                fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
+                st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
+                
+            elif view_type == "Category Distribution":
+                # Get cached data
+                category_dist = get_category_distribution()
+                
+                fig = px.bar(
+                    category_dist,
+                    title="Business Categories by State",
+                    barmode='stack'
+                )
+                # Optimize layout and rendering
+                fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
+                st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
+                
+            else:  # Performance Heatmap
+                # Get cached correlation matrix
+                corr_matrix = get_correlation_matrix(correlation_metrics)
+                
+                fig = px.imshow(
+                    corr_matrix,
+                    title="Sustainability Metrics Correlation",
+                    labels=dict(color="Correlation"),
+                    color_continuous_scale="RdBu"
+                )
+                # Optimize layout
+                fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
+                st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
 
 # Footer section
 # Use st.cache_data to store the HTML content
