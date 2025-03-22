@@ -46,36 +46,32 @@ if 'db_initialized' not in st.session_state:
         st.stop()
 
 # Cache expensive operations
-@st.cache_data(ttl=3600)  # Cache for 1 hour
+@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
 def get_cached_metrics_summary():
     return get_metrics_summary()
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
+@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
 def get_cached_unique_states():
     return get_unique_states()
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
+@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
 def get_cached_unique_categories():
     return get_unique_categories()
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
+@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
 def get_cached_achievements():
     return get_all_achievements()
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
+@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
 def get_cached_cities():
     cities = get_unique_cities()
     return cities
 
-@st.cache_data
+@st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
 def placeholder_function():
     pass
-def placeholder_function():
-    pass
-def example_cached_function():
-    # Example function body
-    pass
-@st.cache_data(ttl=3600)
+
+@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})
 def prepare_city_state_list(df):
     # Convert df to a hashable object like a tuple or string
     city_state_map = {}
@@ -196,7 +192,7 @@ with st.spinner('Loading data...'):
         filter_key = str(filters) + f"_page{page}_perpage{per_page}"
         
         # Use st.cache_data for the data load with specific key
-        @st.cache_data(ttl=300, show_spinner=False)  # Cache for 5 minutes
+        @st.cache_data(ttl=300, show_spinner=False, hash_funcs={pd.DataFrame: lambda _: filter_key})  # Cache for 5 minutes
         def load_cached_data(filter_key):
             # Parse the filter key back to its components
             # This is a simplified version - you'd need to parse the actual filter string
@@ -408,7 +404,8 @@ with tab2:
             st.info("Click on the map to select your location")
             
             # Only create map when needed and cache it
-            @st.cache_data(ttl=3600)
+            @st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})
+
             def create_map(df_sample):
                 # Use a sample of data points for better performance
                 fig = px.scatter_mapbox(
@@ -449,7 +446,7 @@ with tab2:
     # Search button
     if st.button("🔍 Find Sustainable Businesses", type="primary"):
         # Cache the nearby business search for the same location and radius
-        @st.cache_data(ttl=600, show_spinner=False)
+        @st.cache_data(ttl=600, show_spinner=False, hash_funcs={pd.DataFrame: lambda _: f"{lat}_{lon}_{rad}_{min_score}"})
         def get_cached_nearby(df, lat, lon, rad, min_score):
             nearby = get_nearby_businesses(df, lat, lon, rad)
             if min_score > 0:
@@ -635,7 +632,7 @@ with tab4:
             # Check if we need to refresh recommendations
             if last_time is None:
                 # Cache recommendations for a user - improves performance on repeated tab views
-                @st.cache_data(ttl=1800, show_spinner=False)  # Cache for 30 minutes
+                @st.cache_data(ttl=1800, show_spinner=False, hash_funcs={pd.DataFrame: lambda _: f"rec_{current_user['id']}"})  # Cache for 30 minutes
                 def get_cached_recommendations(user_id, api_key):
                     try:
                         raw_recommendations = generate_recommendations(
@@ -693,7 +690,7 @@ with tab4:
             if st.button("🔄 Refresh Recommendations"):
                 st.session_state.last_recommendation_time = None
                 st.experimental_rerun()
-
+    
 with tab5:
     st.header("📊 Sustainability Analytics & Insights")
 
@@ -738,7 +735,7 @@ with tab5:
             )
 
             # Cache the scatter plot generation based on the selected metric
-            @st.cache_data(ttl=600)
+            @st.cache_data(ttl=600, hash_funcs={pd.DataFrame: lambda _: f"{selected_metric}_scatterplot"})
             def generate_scatter_plot(df, selected_metric):
                 fig = px.scatter(
                     df,
@@ -769,7 +766,7 @@ with tab5:
             st.subheader("Top Performers")
             
             # More efficient top performers calculation
-            @st.cache_data(ttl=600)
+            @st.cache_data(ttl=600, hash_funcs={pd.DataFrame: lambda _: None})
             def get_top_performers(df, metric, n=10):
                 return df.nlargest(n, metric)
                 
@@ -784,15 +781,15 @@ with tab5:
     with analytics_tab2:
     # Regional Analysis content
     # Cache computation-heavy operations
-        @st.cache_data
+        @st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
         def get_state_avg_sustainability():
             return df.groupby('state')['sustainability_score'].mean().reset_index()
         
-        @st.cache_data
+        @st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
         def get_category_distribution():
             return pd.crosstab(df['state'], df['category'])
         
-        @st.cache_data
+        @st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
         def get_correlation_matrix(metrics):
             return df[metrics].corr()
     
@@ -856,54 +853,6 @@ with tab5:
             # Optimize layout
             fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
             st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
-        # Regional Analysis content
-        region_col1, region_col2 = st.columns([1, 2])
-
-        with region_col1:
-            view_type = st.radio(
-                "Select View",
-                ["State Overview", "Category Distribution", "Performance Heatmap"]
-            )
-
-        with region_col2:
-            if view_type == "State Overview":
-                # Choropleth map
-                fig = px.choropleth(
-                    df.groupby('state')['sustainability_score'].mean().reset_index(),
-                    locations='state',
-                    locationmode="USA-states",
-                    color='sustainability_score',
-                    scope="usa",
-                    color_continuous_scale="Viridis",
-                    title="Average Sustainability Score by State"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-            elif view_type == "Category Distribution":
-                # Category distribution by state
-                category_dist = pd.crosstab(df['state'], df['category'])
-                fig = px.bar(
-                    category_dist,
-                    title="Business Categories by State",
-                    barmode='stack'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-            else:  # Performance Heatmap
-                # Create correlation matrix of metrics
-                correlation_metrics = [
-                    'sustainability_score', 'eco_materials_score',
-                    'carbon_footprint', 'water_usage', 'worker_welfare'
-                ]
-                corr_matrix = df[correlation_metrics].corr()
-
-                fig = px.imshow(
-                    corr_matrix,
-                    title="Sustainability Metrics Correlation",
-                    labels=dict(color="Correlation"),
-                    color_continuous_scale="RdBu"
-                )
-                st.plotly_chart(fig, use_container_width=True)
 
 # Footer section
 # Use st.cache_data to store the HTML content
