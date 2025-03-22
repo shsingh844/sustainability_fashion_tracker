@@ -1,5 +1,13 @@
-# Testing new code
 import streamlit as st
+
+# Page configuration - Set this first to avoid warnings
+st.set_page_config(
+    page_title="Sustainable Business Analytics USA",
+    page_icon="🌿",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 import plotly.express as px
 import pandas as pd
 from utils.data_processor import (
@@ -21,14 +29,6 @@ from utils.auth import (
 )
 from utils.recommendations import generate_recommendations, format_recommendations_for_display, track_user_interaction
 
-# Page configuration - Set this first to avoid warnings
-st.set_page_config(
-    page_title="Sustainable Business Analytics USA",
-    page_icon="🌿",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 # Initialize session state for authentication and recommendations
 init_session_state()
 if 'last_recommendation_time' not in st.session_state:
@@ -37,7 +37,7 @@ if 'last_recommendation_time' not in st.session_state:
 # One-time database initialization with proper error handling
 if 'db_initialized' not in st.session_state:
     try:
-        with st.spinner("Initializing database..."):
+        with st.spinner("Welcome to Sustainable Business Analytics! Getting things ready :)"):
             init_database()
             initialize_achievements()
             st.session_state.db_initialized = True
