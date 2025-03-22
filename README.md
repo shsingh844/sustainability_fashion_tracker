@@ -1,17 +1,17 @@
-# Sustainable Fashion Analytics Platform 🌿
+# Sustainable Fashion Analytics Platform
 
 ## Overview
 A comprehensive Streamlit-based analytics platform that provides intelligent, personalized business sustainability insights across the USA. This platform helps users discover and analyze sustainable fashion businesses while offering AI-driven recommendations and interactive visualizations.
 
 ## Features
-- 🏢 Nationwide sustainable business database
-- 📍 Advanced location-based filtering with autocomplete
-- 📊 Interactive data visualizations with Plotly
-- 🤖 AI-driven personalized sustainability recommendations
-- 📈 Comprehensive sustainability metrics tracking
-- 🗄️ Scalable PostgreSQL database management
-- 📑 Nested analytics tabs with dashboard, performance, and regional analysis
-- 🔑 Customizable OpenAI API key integration
+- Nationwide sustainable business database
+- Advanced location-based filtering with autocomplete
+- Interactive data visualizations with Plotly
+- AI-driven personalized sustainability recommendations
+- Comprehensive sustainability metrics tracking
+- Scalable PostgreSQL database management
+- Nested analytics tabs with dashboard, performance, and regional analysis
+- Customizable OpenAI API key integration
 
 ## Technologies Used
 - Python 3.11
@@ -35,8 +35,8 @@ A comprehensive Streamlit-based analytics platform that provides intelligent, pe
 
 1. Clone the repository:
 ```bash
-git clone <your-repository-url>
-cd sustainable-fashion-analytics
+git clone https://github.com/shsingh844/sustainability_fashion_tracker.git
+cd sustainability_fashion_tracker
 ```
 
 2. Install required packages:
@@ -72,7 +72,8 @@ To use the personalized recommendations feature:
 ## Project Structure
 ```
 ├── .streamlit/           # Streamlit configuration directory
-│   └── config.toml       # Streamlit server configuration
+|   ├── config.toml       # Streamlit server configuration
+│   └── secrets.toml     # Streamlit cloud env variable
 ├── data/                 # Data directory
 │   └── sustainable_fashion_data.csv  # Sample dataset
 ├── models/               # Database models
@@ -89,15 +90,6 @@ To use the personalized recommendations feature:
 ├── app.py              # Main Streamlit application
 └── pyproject.toml      # Python project dependencies and configuration
 ```
-
-### Essential Files Description
-- `.env`: Contains environment variables (database URL, API keys)
-- `.env.example`: Template for environment variables
-- `app.py`: Main application entry point
-- `pyproject.toml`: Project dependencies
-- `data/sustainable_fashion_data.csv`: Initial dataset for the application
-- `.streamlit/config.toml`: Streamlit server configuration
-
 
 ## Features Overview
 
