@@ -1,8 +1,8 @@
 import streamlit as st
 
-# Page configuration - Set this first to avoid warnings
+# Page configuration
 st.set_page_config(
-    page_title="Sustainable Business Analytics USA",
+    page_title="Sustainable Business Analytics",
     page_icon="🌿",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -17,7 +17,7 @@ from utils.data_processor import (
     get_unique_states,
     get_unique_categories,
     get_metrics_summary,
-    get_nearby_businesses,
+    get_nearby_businesses
 )
 from utils.achievements import get_all_achievements, initialize_achievements
 from utils.auth import (
@@ -25,7 +25,7 @@ from utils.auth import (
     login_user,
     register_user,
     logout_user,
-    get_current_user,
+    get_current_user
 )
 from utils.recommendations import generate_recommendations, format_recommendations_for_display, track_user_interaction
 
@@ -33,62 +33,16 @@ from utils.recommendations import generate_recommendations, format_recommendatio
 init_session_state()
 if 'last_recommendation_time' not in st.session_state:
     st.session_state.last_recommendation_time = None
-    
-# One-time database initialization with proper error handling
+
 if 'db_initialized' not in st.session_state:
     try:
-        with st.spinner("Welcome to Sustainable Business Analytics! Getting things ready :)"):
+        with st.spinner("Welcome to Sustainable Business Analytics! Stitching things up ;)"):
             init_database()
             initialize_achievements()
             st.session_state.db_initialized = True
     except Exception as e:
-        st.error(f"Failed to initialize database: {str(e)}")
+        st.error(f"Database error: {str(e)}")
         st.stop()
-
-# Cache expensive operations
-@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
-def get_cached_metrics_summary():
-    return get_metrics_summary()
-
-@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
-def get_cached_unique_states():
-    return get_unique_states()
-
-@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
-def get_cached_unique_categories():
-    return get_unique_categories()
-
-@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
-def get_cached_achievements():
-    return get_all_achievements()
-
-@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})  # Cache for 1 hour
-def get_cached_cities():
-    cities = get_unique_cities()
-    return cities
-
-@st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
-def placeholder_function():
-    pass
-
-@st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})
-def prepare_city_state_list(df):
-    # Convert df to a hashable object like a tuple or string
-    city_state_map = {}
-    try:
-        for _, row in df.iterrows():
-            city_state_map[row['city']] = row['state']
-    except Exception as e:
-        st.error(f"Error loading city data: {str(e)}")
-        city_state_map = {}
-    
-    # Create and sort city-state list
-    cities = get_cached_cities()
-    city_state_list = []
-    for city in cities:
-        if city in city_state_map:
-            city_state_list.append(f"{city}, {city_state_map[city]}")
-    return sorted(city_state_list)
 
 # Authentication sidebar
 with st.sidebar:
@@ -142,7 +96,7 @@ with st.sidebar:
     # State filter
     state_filter = st.selectbox(
         "📍 Select State",
-        ["All States"] + get_cached_unique_states(),
+        ["All States"] + get_unique_states(),
         index=0,
         help="Filter businesses by state"
     )
@@ -152,7 +106,7 @@ with st.sidebar:
     # Category filter
     category_filter = st.selectbox(
         "🏷️ Business Category",
-        ["All Categories"] + get_cached_unique_categories(),
+        ["All Categories"] + get_unique_categories(),
         index=0,
         help="Filter by business category"
     )
@@ -185,20 +139,10 @@ with st.sidebar:
     with col2:
         per_page = st.selectbox("Per page", [25, 50, 100], index=0)
 
-# Load data with pagination and filters - keep this outside of caching as it depends on user input
+# Load data with pagination and filters
 with st.spinner('Loading data...'):
     try:
-        # Create a cache key based on filters to improve caching
-        filter_key = str(filters) + f"_page{page}_perpage{per_page}"
-        
-        # Use st.cache_data for the data load with specific key
-        @st.cache_data(ttl=300, show_spinner=False, hash_funcs={pd.DataFrame: lambda _: filter_key})  # Cache for 5 minutes
-        def load_cached_data(filter_key):
-            # Parse the filter key back to its components
-            # This is a simplified version - you'd need to parse the actual filter string
-            return load_fashion_data(page=page, per_page=per_page, filters=filters)
-        
-        df, total_count = load_cached_data(filter_key)
+        df, total_count = load_fashion_data(page=page, per_page=per_page, filters=filters)
         pages = -(-total_count // per_page)  # Ceiling division
 
         if len(df) == 0:
@@ -210,8 +154,8 @@ with st.spinner('Loading data...'):
         st.error(f"Failed to load data: {str(e)}")
         st.stop()
 
-# Get metrics summary (cached)
-metrics = get_cached_metrics_summary()
+# Get metrics summary
+metrics = get_metrics_summary()
 
 # Main content
 st.title("🌿 Sustainable Business Analytics USA")
@@ -249,75 +193,68 @@ with tab1:
     }
 
     try:
-        # More efficient sorting directly on the dataframe
-        sort_column = sort_map.get(sort_by, "brand_name")
-        df_sorted = df.sort_values(sort_column, ascending=ascending)
+        df_sorted = df.sort_values(sort_map[sort_by], ascending=ascending)
     except Exception as e:
         st.error(f"Error sorting data: {str(e)}")
         df_sorted = df
 
     # Display businesses in a grid
-    # Use container to improve rendering performance
-    grid_container = st.container()
-    with grid_container:
-        # Create rows of 3 columns
-        for i in range(0, len(df_sorted), 3):
-            cols = st.columns(3)
-            for j, col in enumerate(cols):
-                if i + j < len(df_sorted):
-                    business = df_sorted.iloc[i + j]
-                    with col:
-                        with st.container():
-                            st.subheader(business['brand_name'])
-                            st.caption(f"📍 {business['city']}, {business['state']}")
+    for i in range(0, len(df_sorted), 3):
+        cols = st.columns(3)
+        for j, col in enumerate(cols):
+            if i + j < len(df_sorted):
+                business = df_sorted.iloc[i + j]
+                with col:
+                    with st.container():
+                        st.subheader(business['brand_name'])
+                        st.caption(f"📍 {business['city']}, {business['state']}")
 
-                            # Create a metrics container
-                            metrics_container = st.container()
-                            with metrics_container:
-                                st.progress(business['sustainability_score'] / 100)
+                        # Create a metrics container
+                        metrics_container = st.container()
+                        with metrics_container:
+                            st.progress(business['sustainability_score'] / 100)
 
-                            # Website link
-                            if business['website']:
-                                st.markdown(f"[🌐 Visit Website]({business['website']})")
+                        # Website link
+                        if business['website']:
+                            st.markdown(f"[🌐 Visit Website]({business['website']})")
 
-                            # Show details in an expandable container
-                            with st.expander("📊 Details", expanded=False):
-                                st.write("#### About")
-                                st.write(business['description'])
+                        # Show details in an expandable container
+                        with st.expander("📊 Details", expanded=False):
+                            st.write("#### About")
+                            st.write(business['description'])
 
-                                st.write("#### Certifications")
-                                cert_text = " • ".join([f"✓ {cert}" for cert in business['certifications']])
-                                st.write(cert_text)
+                            st.write("#### Certifications")
+                            cert_text = " • ".join([f"✓ {cert}" for cert in business['certifications']])
+                            st.write(cert_text)
 
-                                st.write("#### Sustainability Metrics")
-                                metrics_md = f"""
-                                - 🌱 **Eco Materials:** {business['eco_materials_score']:.1f}%
-                                - 🌡️ **Carbon Footprint:** {business['carbon_footprint']:.1f}%
-                                - 💧 **Water Usage:** {business['water_usage']:.1f}%
-                                - 👥 **Worker Welfare:** {business['worker_welfare']:.1f}%
-                                """
-                                st.markdown(metrics_md)
+                            st.write("#### Sustainability Metrics")
+                            metrics_md = f"""
+                            - 🌱 **Eco Materials:** {business['eco_materials_score']:.1f}%
+                            - 🌡️ **Carbon Footprint:** {business['carbon_footprint']:.1f}%
+                            - 💧 **Water Usage:** {business['water_usage']:.1f}%
+                            - 👥 **Worker Welfare:** {business['worker_welfare']:.1f}%
+                            """
+                            st.markdown(metrics_md)
 
-                                st.write("#### Location")
-                                st.write(f"📍 {business['city']}, {business['state']} {business['zip_code']}")
+                            st.write("#### Location")
+                            st.write(f"📍 {business['city']}, {business['state']} {business['zip_code']}")
 
-                                if st.session_state.authenticated:
-                                    # Batch interactions instead of tracking each one individually
-                                    if 'pending_interactions' not in st.session_state:
-                                        st.session_state.pending_interactions = []
-                                    
-                                    st.session_state.pending_interactions.append({
-                                        "user_id": st.session_state.user['id'],
-                                        "interaction_type": "view_business",
-                                        "data": {
+                            if st.session_state.authenticated:
+                                try:
+                                    track_user_interaction(
+                                        user_id=st.session_state.user['id'],
+                                        interaction_type="view_business",
+                                        data={
                                             "business_id": business['id'],
                                             "category": business['category'],
                                             "sustainability_score": business['sustainability_score']
                                         }
-                                    })
-                                    
+                                    )
                                     # Update last recommendation time to trigger refresh on next tab view
                                     st.session_state.last_recommendation_time = None
+                                except Exception as e:
+                                    st.error(f"Failed to track interaction: {str(e)}")
+
 
 with tab2:
     st.header("Location-Based Search")
@@ -337,9 +274,23 @@ with tab2:
             if 'selected_city' not in st.session_state:
                 st.session_state.selected_city = None
 
-            # Get city-state list using the cached function
+            # Get list of cities with their states - do this once and store in state
             if 'city_state_list' not in st.session_state:
-                st.session_state.city_state_list = prepare_city_state_list(df)
+                cities = get_unique_cities()
+                city_state_map = {}
+                try:
+                    for _, row in df.iterrows():
+                        city_state_map[row['city']] = row['state']
+                except Exception as e:
+                    st.error(f"Error loading city data: {str(e)}")
+                    city_state_map = {}
+
+                # Create and sort city-state list once
+                city_state_list = []
+                for city in cities:
+                    if city in city_state_map:
+                        city_state_list.append(f"{city}, {city_state_map[city]}")
+                st.session_state.city_state_list = sorted(city_state_list)
 
             # Use the stored city-state list
             if st.session_state.city_state_list:
@@ -402,28 +353,17 @@ with tab2:
 
         else:  # Select from Map
             st.info("Click on the map to select your location")
-            
-            # Only create map when needed and cache it
-            @st.cache_data(ttl=3600, hash_funcs={pd.DataFrame: lambda _: None})
-
-            def create_map(df_sample):
-                # Use a sample of data points for better performance
-                fig = px.scatter_mapbox(
-                    df_sample,
-                    lat='latitude',
-                    lon='longitude',
-                    hover_name='brand_name',
-                    zoom=3,
-                    center=dict(lat=39.8283, lon=-98.5795),
-                    mapbox_style="carto-positron"
-                )
-                return fig
-            
-            # Sample the dataframe for better map performance
-            map_sample = df.sample(min(len(df), 100)) if len(df) > 100 else df
-            fig = create_map(map_sample)
+            # Create an empty map centered on the US
+            fig = px.scatter_map(
+                df,
+                lat='latitude',
+                lon='longitude',
+                hover_name='brand_name',
+                zoom=3,
+                center=dict(lat=39.8283, lon=-98.5795),
+                map_style="carto-positron"
+            )
             st.plotly_chart(fig, use_container_width=True)
-            
             # Use the clicked point's coordinates
             latitude, longitude = 40.7128, -74.0060  # Default to NYC
 
@@ -445,16 +385,8 @@ with tab2:
 
     # Search button
     if st.button("🔍 Find Sustainable Businesses", type="primary"):
-        # Cache the nearby business search for the same location and radius
-        @st.cache_data(ttl=600, show_spinner=False, hash_funcs={pd.DataFrame: lambda _: f"{lat}_{lon}_{rad}_{min_score}"})
-        def get_cached_nearby(df, lat, lon, rad, min_score):
-            nearby = get_nearby_businesses(df, lat, lon, rad)
-            if min_score > 0:
-                nearby = nearby[nearby['sustainability_score'] >= min_score]
-            return nearby
-        
         with st.spinner('Searching nearby businesses...'):
-            nearby = get_cached_nearby(df, latitude, longitude, radius, min_score_filter)
+            nearby = get_nearby_businesses(df, latitude, longitude, radius)
 
             if len(nearby) > 0:
                 if st.session_state.authenticated:
@@ -467,80 +399,63 @@ with tab2:
                         }
                     )
 
-                st.success(f"Found {len(nearby)} sustainable businesses within {radius} miles")
+                # Filter by minimum score if specified
+                if min_score_filter > 0:
+                    nearby = nearby[nearby['sustainability_score'] >= min_score_filter]
 
-                # Map visualization
-                fig = px.scatter_mapbox(
-                    nearby,
-                    lat='latitude',
-                    lon='longitude',
-                    hover_name='brand_name',
-                    hover_data={
-                        'sustainability_score': ':.1f',
-                        'distance': ':.1f',
-                        'city': True,
-                        'state': True,
-                        'category': True,
-                        'latitude': False,
-                        'longitude': False
-                    },
-                    color='sustainability_score',
-                    size='sustainability_score',
-                    title='Nearby Sustainable Businesses',
-                    mapbox_style="carto-positron",
-                    zoom=9,
-                    center=dict(lat=latitude, lon=longitude)
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                if len(nearby) > 0:
+                    st.success(f"Found {len(nearby)} sustainable businesses within {radius} miles")
 
-                # Display results in a grid - potentially use pagination here for large result sets
-                st.subheader("Nearby Businesses")
-                
-                # Show only first 10 businesses by default to improve rendering speed
-                display_limit = min(10, len(nearby))
-                
-                for i in range(0, display_limit, 2):
-                    cols = st.columns(2)
-                    for j, col in enumerate(cols):
-                        if i + j < display_limit:
-                            business = nearby.iloc[i + j]
-                            with col:
-                                with st.expander(
-                                    f"📍 {business['brand_name']} ({business['city']}, {business['state']})"
-                                ):
-                                    st.metric("Distance", f"{business['distance']:.1f} miles")
-                                    st.metric("Sustainability Score", f"{business['sustainability_score']:.1f}%")
-                                    st.metric("Category", business['category'])
+                    # Map visualization
+                    fig = px.scatter_map(
+                        nearby,
+                        lat='latitude',
+                        lon='longitude',
+                        hover_name='brand_name',
+                        hover_data={
+                            'sustainability_score': ':.1f',
+                            'distance': ':.1f',
+                            'city': True,
+                            'state': True,
+                            'category': True,
+                            'latitude': False,
+                            'longitude': False
+                        },
+                        color='sustainability_score',
+                        size='sustainability_score',
+                        title='Nearby Sustainable Businesses',
+                        map_style="carto-positron",
+                        zoom=9,
+                        center=dict(lat=latitude, lon=longitude)
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
 
-                                    # Additional metrics in columns
-                                    metric_cols = st.columns(2)
-                                    with metric_cols[0]:
-                                        st.metric("Eco Score", f"{business['eco_materials_score']:.1f}%")
-                                    with metric_cols[1]:
-                                        st.metric("Worker Welfare", f"{business['worker_welfare']:.1f}%")
+                    # Display results in a grid
+                    st.subheader("Nearby Businesses")
+                    for i in range(0, len(nearby), 2):
+                        cols = st.columns(2)
+                        for j, col in enumerate(cols):
+                            if i + j < len(nearby):
+                                business = nearby.iloc[i + j]
+                                with col:
+                                    with st.expander(
+                                        f"📍 {business['brand_name']} ({business['city']}, {business['state']})"
+                                    ):
+                                        st.metric("Distance", f"{business['distance']:.1f} miles")
+                                        st.metric("Sustainability Score", f"{business['sustainability_score']:.1f}%")
+                                        st.metric("Category", business['category'])
 
-                                    if business['website']:
-                                        st.markdown(f"[🌐 Visit Website]({business['website']})")
-                
-                # Show a "Load More" button if there are more businesses to display
-                if len(nearby) > display_limit:
-                    if st.button(f"Show all {len(nearby)} businesses"):
-                        for i in range(display_limit, len(nearby), 2):
-                            cols = st.columns(2)
-                            for j, col in enumerate(cols):
-                                if i + j < len(nearby):
-                                    business = nearby.iloc[i + j]
-                                    with col:
-                                        with st.expander(
-                                            f"📍 {business['brand_name']} ({business['city']}, {business['state']})"
-                                        ):
-                                            st.metric("Distance", f"{business['distance']:.1f} miles")
-                                            st.metric("Sustainability Score", f"{business['sustainability_score']:.1f}%")
-                                            st.metric("Category", business['category'])
-                                            
-                                            if business['website']:
-                                                st.markdown(f"[🌐 Visit Website]({business['website']})")
-                    
+                                        # Additional metrics in columns
+                                        metric_cols = st.columns(2)
+                                        with metric_cols[0]:
+                                            st.metric("Eco Score", f"{business['eco_materials_score']:.1f}%")
+                                        with metric_cols[1]:
+                                            st.metric("Worker Welfare", f"{business['worker_welfare']:.1f}%")
+
+                                        if business['website']:
+                                            st.markdown(f"[🌐 Visit Website]({business['website']})")
+                else:
+                    st.warning(f"No businesses found with sustainability score ≥ {min_score_filter}")
             else:
                 st.warning("No sustainable businesses found within the specified radius.")
 
@@ -548,8 +463,8 @@ with tab3:
     st.header("🏆 Sustainability Achievements")
     st.write("Earn badges by exploring and supporting sustainable businesses!")
 
-    # Get all achievements and display them - with caching
-    achievements = get_cached_achievements()
+    # Get all achievements and display them
+    achievements = get_all_achievements()
 
     # Group achievements by category
     categories = {
@@ -631,30 +546,22 @@ with tab4:
 
             # Check if we need to refresh recommendations
             if last_time is None:
-                # Cache recommendations for a user - improves performance on repeated tab views
-                @st.cache_data(ttl=1800, show_spinner=False, hash_funcs={pd.DataFrame: lambda _: f"rec_{current_user['id']}"})  # Cache for 30 minutes
-                def get_cached_recommendations(user_id, api_key):
+                with st.spinner("Updating recommendations based on your recent interactions..."):
                     try:
                         raw_recommendations = generate_recommendations(
-                            user_id=user_id,
-                            api_key=api_key
+                            user_id=current_user['id'],
+                            api_key=st.session_state.openai_api_key
                         )
-                        return format_recommendations_for_display(raw_recommendations)
+                        recommendations = format_recommendations_for_display(raw_recommendations)
+                        st.session_state.last_recommendation_time = current_time
+                        st.session_state.current_recommendations = recommendations
                     except Exception as e:
                         st.error(f"Could not generate recommendations: {str(e)}")
-                        return {
+                        recommendations = {
                             "business_recommendations": [],
                             "sustainability_tips": [],
                             "suggested_categories": []
                         }
-                
-                with st.spinner("Updating recommendations based on your recent interactions..."):
-                    recommendations = get_cached_recommendations(
-                        current_user['id'], 
-                        st.session_state.openai_api_key
-                    )
-                    st.session_state.last_recommendation_time = current_time
-                    st.session_state.current_recommendations = recommendations
             else:
                 recommendations = st.session_state.current_recommendations
 
@@ -690,7 +597,7 @@ with tab4:
             if st.button("🔄 Refresh Recommendations"):
                 st.session_state.last_recommendation_time = None
                 st.experimental_rerun()
-    
+
 with tab5:
     st.header("📊 Sustainability Analytics & Insights")
 
@@ -715,7 +622,7 @@ with tab5:
     ])
 
     with analytics_tab1:
-        # Performance Analytics content - cache the chart generation
+        # Performance Analytics content
         metric_col1, metric_col2 = st.columns([2, 1])
 
         with metric_col1:
@@ -734,43 +641,33 @@ with tab5:
                 format_func=lambda x: metric_options[x]
             )
 
-            # Cache the scatter plot generation based on the selected metric
-            @st.cache_data(ttl=600, hash_funcs={pd.DataFrame: lambda _: f"{selected_metric}_scatterplot"})
-            def generate_scatter_plot(df, selected_metric):
-                fig = px.scatter(
-                    df,
-                    x='sustainability_score',
-                    y=selected_metric,
-                    size='sustainability_score',
-                    color='category',
-                    hover_name='brand_name',
-                    hover_data={
-                        'city': True,
-                        'state': True,
-                        selected_metric: ':.1f',
-                        'sustainability_score': ':.1f'
-                    },
-                    title=f'{metric_options[selected_metric]} Analysis',
-                    labels={
-                        'sustainability_score': 'Overall Sustainability Score',
-                        selected_metric: metric_options[selected_metric]
-                    }
-                )
-                fig.update_layout(height=600)
-                return fig
-            
-            fig = generate_scatter_plot(df, selected_metric)
+            # Scatter plot with multiple dimensions
+            fig = px.scatter(
+                df,
+                x='sustainability_score',
+                y=selected_metric,
+                size='sustainability_score',
+                color='category',
+                hover_name='brand_name',
+                hover_data={
+                    'city': True,
+                    'state': True,
+                    selected_metric: ':.1f',
+                    'sustainability_score': ':.1f'
+                },
+                title=f'{metric_options[selected_metric]} Analysis',
+                labels={
+                    'sustainability_score': 'Overall Sustainability Score',
+                    selected_metric: metric_options[selected_metric]
+                }
+            )
+
+            fig.update_layout(height=600)
             st.plotly_chart(fig, use_container_width=True)
 
         with metric_col2:
             st.subheader("Top Performers")
-            
-            # More efficient top performers calculation
-            @st.cache_data(ttl=600, hash_funcs={pd.DataFrame: lambda _: None})
-            def get_top_performers(df, metric, n=10):
-                return df.nlargest(n, metric)
-                
-            top_10 = get_top_performers(df, selected_metric)
+            top_10 = df.nlargest(10, selected_metric)
 
             for _, row in top_10.iterrows():
                 with st.container():
@@ -780,42 +677,19 @@ with tab5:
 
     with analytics_tab2:
         # Regional Analysis content
-        # Cache computation-heavy operations
-        @st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
-        def get_state_avg_sustainability():
-            return df.groupby('state')['sustainability_score'].mean().reset_index()
-        
-        @st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
-        def get_category_distribution():
-            return pd.crosstab(df['state'], df['category'])
-        
-        @st.cache_data(hash_funcs={pd.DataFrame: lambda _: None})
-        def get_correlation_matrix(metrics):
-            return df[metrics].corr()
-    
-        # Define the metrics list once to avoid recreation
-        correlation_metrics = [
-            'sustainability_score', 'eco_materials_score',
-            'carbon_footprint', 'water_usage', 'worker_welfare'
-        ]
-        
         region_col1, region_col2 = st.columns([1, 2])
-        
+
         with region_col1:
             view_type = st.radio(
                 "Select View",
-                ["State Overview", "Category Distribution", "Performance Heatmap"],
-                key="region_view_type"  # Add unique key to improve session state handling
+                ["State Overview", "Category Distribution", "Performance Heatmap"]
             )
-        
+
         with region_col2:
             if view_type == "State Overview":
-                # Get cached data instead of recomputing
-                state_avg = get_state_avg_sustainability()
-                
-                # Create figure only once when needed
+                # Choropleth map
                 fig = px.choropleth(
-                    state_avg,
+                    df.groupby('state')['sustainability_score'].mean().reset_index(),
                     locations='state',
                     locationmode="USA-states",
                     color='sustainability_score',
@@ -823,82 +697,55 @@ with tab5:
                     color_continuous_scale="Viridis",
                     title="Average Sustainability Score by State"
                 )
-                # Optimize rendering
-                fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
-                st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
-                
+                st.plotly_chart(fig, use_container_width=True)
+
             elif view_type == "Category Distribution":
-                # Get cached data
-                category_dist = get_category_distribution()
-                
+                # Category distribution by state
+                category_dist = pd.crosstab(df['state'], df['category'])
                 fig = px.bar(
                     category_dist,
                     title="Business Categories by State",
                     barmode='stack'
                 )
-                # Optimize layout and rendering
-                fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
-                st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
-                
+                st.plotly_chart(fig, use_container_width=True)
+
             else:  # Performance Heatmap
-                # Get cached correlation matrix
-                corr_matrix = get_correlation_matrix(correlation_metrics)
-                
+                # Create correlation matrix of metrics
+                correlation_metrics = [
+                    'sustainability_score', 'eco_materials_score',
+                    'carbon_footprint', 'water_usage', 'worker_welfare'
+                ]
+                corr_matrix = df[correlation_metrics].corr()
+
                 fig = px.imshow(
                     corr_matrix,
                     title="Sustainability Metrics Correlation",
                     labels=dict(color="Correlation"),
                     color_continuous_scale="RdBu"
                 )
-                # Optimize layout
-                fig.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
-                st.plotly_chart(fig, use_container_width=True, config={'staticPlot': False})
+                st.plotly_chart(fig, use_container_width=True)
 
 # Footer section
-# Use st.cache_data to store the HTML content
-@st.cache_data
-def get_footer_html():
-    return {
-        "main_footer": """
-        <div style='text-align: center'>
-            <p>Promoting sustainable businesses across the United States</p>
-            <p><small>Data last updated: March 2025 | Contributing to a greener future 🌱</small></p>
-        </div>
-        """,
-        "data_sources": """
-        <div style='text-align: center'>
-            <p><small>Data Sources:</small></p>
-            <p><small>
-            - Company information collected from official company websites and sustainability reports
-            - Sustainability metrics compiled from third-party certifications and company disclosures
-            - Geographic data sourced from public business registries
-            - Last updated: March 2025
-            </small></p>
-            <p><small>Note: This is a demonstration dataset created for educational purposes.</small></p>
-        </div>
-        """
-    }
-
-# Create a container for the footer to better control layout and rendering
-footer_container = st.container()
-
-with footer_container:
-    # Get cached HTML content
-    footer_html = get_footer_html()
-    
-    # Use divider instead of markdown for the separator lines
-    st.divider()
-    
-    # Main footer
-    st.markdown(
-        footer_html["main_footer"],
-        unsafe_allow_html=True
-    )
-    
-    st.divider()
-    
-    # Data sources
-    st.markdown(
-        footer_html["data_sources"],
-        unsafe_allow_html=True
-    )
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center'>
+        <p>Promoting sustainable businesses across the United States</p>
+        <p><small>Data last updated: March 2025 | Contributing to a greener future 🌱</small></p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+st.markdown("---")
+st.markdown("""
+<div style='text-align: center'>
+    <p><small>Data Sources:</small></p>
+    <p><small>
+    - Company information collected from official company websites and sustainability reports
+    - Sustainability metrics compiled from third-party certifications and company disclosures
+    - Geographic data sourced from public business registries
+    - Last updated: March 2025
+    </small></p>
+    <p><small>Note: This is a demonstration dataset created for educational purposes.</small></p>
+</div>
+""", unsafe_allow_html=True)
